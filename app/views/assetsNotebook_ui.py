@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
-import os, subprocess, json 
+# import os, subprocess, json 
 from app.settings import STATE 
 
 class AssetsNotebook:
@@ -13,7 +13,7 @@ class AssetsNotebook:
 
         # Crear el Notebook
         self.assets_tab = ttk.Notebook(self.root)
-        self.assets_tab.place(x=250, y=850, width=1367, height=600)
+        self.assets_tab.place(x=250, y=750, width=1367, height=400)
 
         # Crear el Frame que contendrá los elementos
         self.scripts_frame = tk.Frame(self.assets_tab)
@@ -48,11 +48,35 @@ class AssetsNotebook:
         tab2 = ttk.Frame(self.assets_tab)
         tab4 = ttk.Frame(self.assets_tab)
 
-        # create_button = tk.Button(self.scripts_frame, text="New Script", command=self.new_script_popup)
-        # create_button.place(x=14, y=20)  # Ubicar el botón en la esquina derecha superior
-        
-
         # Agregar las pestañas al Notebook
         self.assets_tab.add(self.scripts_frame, text="Scripts")
         self.assets_tab.add(tab2, text="Images")
         self.assets_tab.add(tab4, text="Sounds")
+
+class HierachyTab():
+
+    def __init__(self, root, levels_file, notebook, entities_classes):
+        
+        self.root = root 
+        self.levels_file = levels_file
+        self.notebook = notebook
+        self.entities_classes = entities_classes
+        # # Crear los Frames que representarán el contenido de cada pestaña
+        self.level_tab = ttk.Frame(self.notebook)
+
+        # Cargar las entidades en el Listbox
+        self.entities = levels_file['layers']['objects']['entities']  # Acceder a las entidades
+        
+        self.level_label = tk.Label(self.level_tab, text="Hierarchy", font=("Arial", 10))
+        self.level_label.place(x=1, y=9)  # Empaquetar y añadir margen superior/inferior
+
+        self.listbox = tk.Listbox(self.level_tab, width=35, height=16)
+        self.listbox.place(x=10, y=32)
+
+        self.contextual_menu = self.hierarchy_contextual_menu()
+
+        for entity in self.entities:
+            entity_name = entity['entity_name']
+            self.listbox.insert(tk.END, f"{entity_name}")
+        
+        self.notebook.add(self.level_tab, text="Level")

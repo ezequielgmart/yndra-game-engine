@@ -24,13 +24,13 @@ class WindowsApp:
         self.root.state("zoomed") 
 
         # Cargar los elementos del archivo JSON
-        self.levels_file = self.read_json_file(STATE.content['project_path'] + "\\levels\\initial_level.json")
+        self.levels_file = self.read_json_file(STATE.content['project_path'] + "\\assets\\levels\\initial_level.json")
 
         self.scripts_dir = STATE.content['project_path'] + "\\assets\\scripts"
         # obtener todos lso archivos de scripts
         self.scripts_files = self.get_scripts_files(self.scripts_dir)
         
-        self.entities_classes_json = self.read_json_file(STATE.content['project_path'] + "\\assets\\entity_classes.json")
+        self.entities_classes_json = self.read_json_file(STATE.content['project_path'] + "\\assets\\data\\entity_classes.json")
 
 
         self.project_file_data = self.read_json_file(STATE.content['project_path'] + "\\project.json")

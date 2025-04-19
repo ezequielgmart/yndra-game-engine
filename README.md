@@ -4,6 +4,9 @@ Entity-Component-System Game Engine with a graphic interface for 2D projects. Po
 
 ### DONE ################
 
+Assets
+    1. Crear tree view para poder navegar el directorio principal del juego.
+    
 ##### TO DO ################
 
 1. Scripts
@@ -12,7 +15,7 @@ Entity-Component-System Game Engine with a graphic interface for 2D projects. Po
     3. Asignarle scripts a un entity
     4. Quitarle scripts a un entity
 2. Assets
-    1. Crear tree view para poder navegar el directorio principal del juego.
+
     2. 
         1. view: visor de imagenes 
         2. controller: cuando se le de click a un archivo con formato de imagen.   
