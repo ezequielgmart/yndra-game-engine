@@ -25,22 +25,24 @@ class InspectorNotebook:
 
         self.inspector_notebook.add(self.inspector_tab, text="inspector")
 
-        self.check_events()
+        # self.check_events()
+        APPLICATION.event_listener(self.root, "entities-listbox", "listbox element click", self.display_entity_components)
 
-    def check_events(self):
-        """
-        Revisa periódicamente la cola de eventos y los procesa.
-        """
-        if APPLICATION.events_queue:
-            # Procesar los eventos en la cola
-            for event in APPLICATION.events_queue[:]:  # Usamos una copia con slice
-                if event["head"]["trigger"] == "entities-listbox" and event["head"]["type"] == "listbox element click":
-                    self.display_entity_components(event["body"])
 
-                    APPLICATION.events_queue.remove(event)  # Eliminar el evento después de procesarlo
+    # def check_events(self):
+    #     """
+    #     Revisa periódicamente la cola de eventos y los procesa.
+    #     """
+    #     if APPLICATION.events_queue:
+    #         # Procesar los eventos en la cola
+    #         for event in APPLICATION.events_queue[:]:  # Usamos una copia con slice
+    #             if event["head"]["trigger"] == "entities-listbox" and event["head"]["type"] == "listbox element click":
+    #                 self.display_entity_components(event)
 
-        # Programar la próxima revisión después de 100 ms
-        self.root.after(100, self.check_events)
+    #                 APPLICATION.events_queue.remove(event)  # Eliminar el evento después de procesarlo
+
+    #     # Programar la próxima revisión después de 100 ms
+    #     self.root.after(100, self.check_events)
 
     # def test_inspector_form(self, entity_data):
 
@@ -101,10 +103,12 @@ class InspectorNotebook:
         # # Limpiar el inspector si no hay selección válida
         # self.clear_inspector()
 
-    def display_entity_components(self, entity_data):
+    def display_entity_components(self, entity):
         """
         Crea el formulario dinámico en el inspector para los componentes de la entidad o clase.
         """
+        entity_data = entity["body"]
+
         if len(self.childrens) > 0:
 
             self.clear_inspector()  # Limpiar el inspector antes de mostrar nuevos widgets
@@ -124,10 +128,7 @@ class InspectorNotebook:
             try:
                 with open(file_path, 'w') as file:
                     file.write(f"""
-\"\"\"
-FILE CREATED by SNAKE ENGINE CORE
-                        
-\"\"\"  
+
 class {self.entry.get()}:
 
     def __init__(self, entity):
@@ -146,7 +147,8 @@ class {self.entry.get()}:
                 # subprocess.Popen(["code", file_path], shell=True)
 
                 # self.scripts_files.append(file_name)
-                self.listbox.insert(tk.END, f"{file_name}")
+                # self.listbox.insert(tk.END, f"{file_name}")
+                APPLICATION.insert_element_on_listbox(self.listbox, tk, file_name)
 
                 self.entry.delete(0, tk.END)
             except Exception as e:

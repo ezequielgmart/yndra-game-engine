@@ -19,7 +19,7 @@ class ResourcesNotebook:
 
         
         self.hierachy_tab = HierachyTab(root, self.levels_file, self.resources_notebook, self.entities_classes)
-        self.hierachy_tab = ProjectTab(root, self.entities_classes, self.resources_notebook)
+        # self.hierachy_tab = ProjectTab(root, self.entities_classes, self.resources_notebook)
 
         self.explorer_treeview = ExplorerTreeView(root, 'C:/Users/jerem/Desktop/asteroids/projects/asteroids_ECS/assets/')
 
@@ -52,9 +52,9 @@ class ExplorerTreeView():
 
         
         # Asociar el evento de selección al Listbox
-        self.tree.bind("<<TreeviewSelect>>", self.onclick_event)
+        self.tree.bind("<Double-1>", self.on_doubleclick_event)
 
-    def onclick_event(self, event):
+    def on_doubleclick_event(self, event):
         """
         Maneja el evento de selección en el Treeview.
         """
@@ -71,10 +71,6 @@ class ExplorerTreeView():
 
             if not evaluate:
                 print(f"Carpeta: {item_text}")  
-          
-                  
-
-
 
         else:
             print("No hay ningún elemento seleccionado.")
@@ -107,7 +103,7 @@ class ExplorerTreeView():
         try:
             # Abrir el archivo con Visual Studio Code
             subprocess.Popen(["code", file_path], shell=True)
-            print(f"Abriendo archivo en VS Code: {file_path}")
+ 
         except FileNotFoundError:
             print(f"No se pudo abrir el archivo: {file_path}")
 
@@ -153,7 +149,7 @@ class HierachyTab():
         self.entities = levels_file['layers']['objects']['entities']  # Acceder a las entidades
         
         self.level_label = tk.Label(self.level_tab, text="Hierarchy", font=("Arial", 10))
-        self.level_label.place(x=1, y=9)  # Empaquetar y añadir margen superior/inferior
+        self.level_label.place(x=10, y=9)  # Empaquetar y añadir margen superior/inferior
 
         self.listbox = tk.Listbox(self.level_tab, width=35, height=16)
         self.listbox.place(x=10, y=32)
@@ -166,6 +162,7 @@ class HierachyTab():
         
         self.notebook.add(self.level_tab, text="Level")
 
+        self.entity_class_listbox()
 
         # Asociar el evento de selección al Listbox
         self.listbox.bind("<<ListboxSelect>>", self.get_entity_details)
@@ -210,14 +207,50 @@ class HierachyTab():
             ### menu contextual
 
         self.context_menu = tk.Menu(self.root, tearoff=0)
-        self.context_menu.add_command(label="New Entity", command=self.open_on_editor)
+        self.context_menu.add_command(label="New Entity", command=self.new_entity_event)
 
         # Vincular evento de clic derecho al menú contextual
         self.listbox.bind("<Button-3>", self.show_context_menu)
 
         
-        self.listbox.bind("<<ListboxSelect>>", self.open_on_editor)
+        # self.listbox.bind("<<ListboxSelect>>", self.open_on_editor)
+    
+    def new_entity_event(self):
+
+        # registrar evento. 
+        trigger = "entities-contextual-menu"
+        type = "new entity button click"
         
+        entity=[]
+
+        APPLICATION.add_event(trigger, type, entity)
+
+        print(APPLICATION.events_queue)
+
+    def entity_class_listbox(self):
+
+        # # Crear los Frames que representarán el contenido de cada pestaña
+        self.entity_classes_level_tab = ttk.Frame(self.notebook)
+        
+        self.entity_classes_level_label = tk.Label(self.level_tab, text="Classes", font=("Arial", 10))
+        self.entity_classes_level_label.place(x=10, y=750)  # Empaquetar y añadir margen superior/inferior
+
+        # create_button = tk.Button(self.level_tab, text="New Class", command=self.new_script_popup)
+        # create_button.place(x=140, y=375)  # Ubicar el botón en la esquina derecha superior
+
+        self.entity_classes_listbox = tk.Listbox(self.level_tab, width=35, height=11)
+        self.entity_classes_listbox.place(x=10, y=770)
+
+        
+        for entity in self.entities_classes:
+            entity_name = entity['class_name']
+            APPLICATION.insert_element_on_listbox(self.entity_classes_listbox,tk,entity_name)
+            # self.listbox.insert(tk.END, f"{entity_name}")
+        
+        # self.notebook.add(self.level_tab, text="Project")
+        
+        self.notebook.add(self.entity_classes_level_tab, text="Level")
+    
     def open_on_editor(self, event):
         """
         Abre el archivo seleccionado en Visual Studio Code.
@@ -256,7 +289,7 @@ class ProjectTab():
         self.level_tab = ttk.Frame(self.notebook)
         
         self.level_label = tk.Label(self.level_tab, text="Classes", font=("Arial", 10))
-        self.level_label.place(x=1, y=9)  # Empaquetar y añadir margen superior/inferior
+        self.level_label.place(x=10, y=9)  # Empaquetar y añadir margen superior/inferior
 
         # create_button = tk.Button(self.level_tab, text="New Class", command=self.new_script_popup)
         # create_button.place(x=140, y=375)  # Ubicar el botón en la esquina derecha superior

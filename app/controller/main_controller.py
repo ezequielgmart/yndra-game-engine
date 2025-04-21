@@ -1,6 +1,11 @@
-from app.model.main_model import AppModel
+
 import time
 import hashlib
+import json, os
+
+from tkinter import messagebox
+
+from app.model.main_model import AppModel
 
 
 
@@ -72,4 +77,61 @@ class Application():
             hash_hex = hash_object.hexdigest()
 
             return hash_hex
+
+    def event_listener(self, root, event_trigger, event_type, callback_function = None):
+        """
+        Revisa periódicamente la cola de eventos y los procesa.
+        """
+        if self.events_queue:
+            # Procesar los eventos en la cola
+            for event in self.events_queue[:]:  # Usamos una copia con slice
+                if event["head"]["trigger"] == event_trigger and event["head"]["type"] == event_type:
+                    # self.display_entity_components(event["body"])
+                
+                    # Ejecutar la acción pasada como parámetro, si existe
+                    if callback_function:
+                        callback_function(event)
+
+                    self.events_queue.remove(event)  # Eliminar el evento después de procesarlo
+
+        root.after(100, lambda: self.event_listener(root, event_trigger, event_type,callback_function))
+
+    def insert_element_on_listbox(self, listbox, tkinter, item):
+
+        listbox.insert(tkinter.END, f"{item}")
+
+        
+    def read_json_file(self, json_file):
+        with open(json_file, "r") as f:
+            data = json.load(f)
+        return data
+
+    def new_entity_id(self, entities_list, name_data_txt):
+        # Encuentra el mayor valor de "entity_id" en la lista
+        new_id = max(entities_list, key=lambda x: x["entity_id"])["entity_id"]
+        new_id += 1
+
+        # Obtener el texto del Textbox
+        entity_name = name_data_txt.get("1.0", "end").strip()  # Eliminar espacios y salto de línea
+
+        # Validar si el nombre no está vacío
+        if not entity_name:
+            self.show_warning("Entity name missing!")
+            return None  # Salir de la función si está vacío
+
+        # Comprobar que el nombre no se encuentre
+        for entity in entities_list:
+            if entity_name == entity["entity_name"]:
+                self.show_warning("Already exist!")
+                return None  # Salir de la función si ya existe
+
+        # Si pasó todas las validaciones, devolver el resultado
+        result = {"id": new_id, "entity": entity_name}
+        return result
+
+
+    
+    def show_warning(self, warning_msg):
+        messagebox.showwarning("Warning!", warning_msg)    
+
 
