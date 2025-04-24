@@ -24,6 +24,7 @@ class WindowsApp:
         self.root.state("zoomed") 
 
         # Cargar los elementos del archivo JSON
+        
         self.levels_file = self.read_json_file(STATE.content['project_path'] + "\\assets\\levels\\initial_level.json")
 
         self.scripts_dir = STATE.content['project_path'] + "\\assets\\scripts"
@@ -267,12 +268,17 @@ class WindowsApp:
     #         STATE.add_project(selected_path)
 
     def run_script(self):
+        
+        script_directory = STATE.content['project_path']
+
+
+        run_file = os.path.join(STATE.content['project_path'], "game.py")
+
         try:
             # Obtener el directorio del archivo a ejecutar
-            script_directory = STATE.content['project_path']
             
             # Ejecutar el script desde su directorio
-            subprocess.Popen(["python", STATE.content['run_file']], cwd=script_directory)
+            subprocess.Popen(["python", run_file], cwd=script_directory)
             print("Script ejecutado correctamente.")
         except subprocess.CalledProcessError as e:
             print(f"Hubo un error al ejecutar el script: {e}")

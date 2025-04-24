@@ -5,7 +5,7 @@ import json, os
 
 from tkinter import messagebox
 
-from app.model.main_model import AppModel
+from app.model.main_model import AppModel, NewEntityModel
 
 
 
@@ -127,6 +127,15 @@ class Application():
 
         # Si pasó todas las validaciones, devolver el resultado
         result = {"id": new_id, "entity": entity_name}
+
+        level_json_file = "C:\\Users\\jerem\\Desktop\\asteroids\\projects\\asteroids_ECS\\assets\\levels\\initial_level.json"
+
+        if result is not None:
+
+            new_entity_model = NewEntityModel(level_json_file, result["id"], result["entity"])
+
+            query_result = new_entity_model.add_item()
+            
         return result
 
 

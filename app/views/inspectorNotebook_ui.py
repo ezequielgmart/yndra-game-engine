@@ -3,7 +3,7 @@ from tkinter import ttk
 import os, subprocess
 from PIL import Image, ImageTk
 # import os, subprocess, json 
-from app.settings import STATE, APPLICATION 
+from app.settings import STATE, APPLICATION
 
 class InspectorNotebook:
 
@@ -56,7 +56,6 @@ class InspectorNotebook:
     #     label.place(x=10, y=5)  
 
     #     self.childrens.append(label)
-
 
 
     def new_entity_popup(self):
@@ -170,10 +169,18 @@ class {self.entry.get()}:
         """
         Crea el formulario dinámico en el inspector para la entidad dada.
         """
-
+    
+        self.clear_inspector() 
         ################### 
-        self.entity_info_frame  = tk.Frame(self.inspector_tab, width=self.notebook_width, height=40)
+        self.entity_info_frame  = tk.Frame(self.inspector_tab, width=self.notebook_width, height=60)
         self.entity_info_frame.place(x=0, y=0)
+
+        self.close_inspector_btn = tk.Button(self.entity_info_frame, text="X", command=self.clear_inspector)
+        self.close_inspector_btn.place(x=260, y=5) 
+
+        
+        self.delete_entity_btn = tk.Button(self.entity_info_frame, text="Delete", command=self.scripts_contextual_menu)
+        self.delete_entity_btn.place(x=10, y=100) 
 
         # Textbox para mostrar el nombre de la entidad
         name_data_txt = tk.Text(self.entity_info_frame, height=1, width=34, font=("Arial", 10))
@@ -256,7 +263,7 @@ class {self.entry.get()}:
                 self.childrens.append(self.position_component_frame)
 
 
-            if component["type"] == "Render":
+            elif component["type"] == "Render":
                 # *** RENDER ************ #  
                 ################################ 
                 self.render_model = entity["components"][1]["data"]
@@ -282,7 +289,8 @@ class {self.entry.get()}:
                 # Crear un Label para mostrar la imagen en el render frame
                 bg_img_label = tk.Label(self.render_component_frame, image=self.bg_photo)
                 bg_img_label.place(x=5, y=30)  # Ajustar coordenadas dentro del frame
-                self.childrens.append(bg_img_label)
+
+                # self.childrens.append(bg_img_label)
 
                 # Cargar la imagen del entity
                 src_entity =os.path.join(STATE.content['project_path'],self.render_model["sprites"]) 
@@ -294,9 +302,10 @@ class {self.entry.get()}:
                 # Crear un Label para mostrar la imagen del entity dentro del render frame
                 entity_img_label = tk.Label(self.render_component_frame, image=self.entity_photo)
                 entity_img_label.place(x=40, y=60)  # Ajustar la posición dentro del frame
-                self.childrens.append(entity_img_label)
 
-            if component["type"] == "behaviour":
+                self.childrens.append(self.render_component_frame)
+
+            elif component["type"] == "behaviour":
                 
                 # self.behaviour_model = entity["components"][2]["data"]
 
@@ -324,13 +333,15 @@ class {self.entry.get()}:
                     module= script['module']
                     self.scripts_listbox.insert(tk.END, f"{module}")
 
-                self.childrens.append(self.scripts_listbox)
 
                 
                 # Asociar el evento de selección al Listbox
                 self.scripts_listbox.bind("<<ListboxSelect>>", self.open_on_editor)
 
                 self.contextual_menu = self.scripts_contextual_menu()
+
+                
+                self.childrens.append(self.behaviour_component_frame)
 
 
     def scripts_contextual_menu(self):

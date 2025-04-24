@@ -3,7 +3,9 @@ from tkinter import ttk
 
 from PIL import Image, ImageTk
 import os, subprocess, json 
-from app.settings import STATE, APPLICATION 
+
+from app.model.main_model import GetAllEntitiesModel
+from app.settings import STATE, APPLICATION, LEVELS 
 
 class ResourcesNotebook:
 
@@ -13,6 +15,7 @@ class ResourcesNotebook:
         self.levels_file = levels_file
         self.entities_classes = entities_classes
 
+        self.levels_file_json = LEVELS[0]
         
         self.resources_notebook = ttk.Notebook(self.root)
         self.resources_notebook.place(x=1, y=2, width=245, height=1890)  
@@ -151,21 +154,24 @@ class HierachyTab():
         self.level_label = tk.Label(self.level_tab, text="Hierarchy", font=("Arial", 10))
         self.level_label.place(x=10, y=9)  # Empaquetar y añadir margen superior/inferior
 
-        self.listbox = tk.Listbox(self.level_tab, width=35, height=16)
-        self.listbox.place(x=10, y=32)
+        self.entity_listbox = tk.Listbox(self.level_tab, width=35, height=16)
+        self.entity_listbox.place(x=10, y=32)
 
         self.contextual_menu = self.hierarchy_contextual_menu()
 
         for entity in self.entities:
             entity_name = entity['entity_name']
-            self.listbox.insert(tk.END, f"{entity_name}")
+            self.entity_listbox.insert(tk.END, f"{entity_name}")
         
         self.notebook.add(self.level_tab, text="Level")
 
         self.entity_class_listbox()
 
         # Asociar el evento de selección al Listbox
-        self.listbox.bind("<<ListboxSelect>>", self.get_entity_details)
+        self.entity_listbox.bind("<<ListboxSelect>>", self.get_entity_details)
+
+        
+        APPLICATION.event_listener(self.root, "new entity form", "item added", self.insert_new_entity_to_listbox)
 
     def testing_events(self):
 
@@ -183,23 +189,25 @@ class HierachyTab():
         Muestra la información de la entidad seleccionada.
         """
         # Obtener el índice del elemento seleccionado
-        selected_index = self.listbox.curselection()
+        selected_index = self.entity_listbox.curselection()
 
-        if selected_index:
+        model = GetAllEntitiesModel()
+        self.entities = model.get_all(LEVELS[0])
+        
+        if selected_index:  # Validar que no esté vacío
             # Buscar la entidad correspondiente
+            
+
             entity = self.entities[selected_index[0]]
             
-            # print(f"Entidad seleccionada: {entity['entity_name']}")
-            # print(f"Detalles: {entity}")
+            print(f"Entidad seleccionada: {entity['entity_name']}")
+            print(f"Detalles: {entity}")
 
-            # registrar evento. 
+            # Registrar evento
             trigger = "entities-listbox"
             type = "listbox element click"
             
-
-
             APPLICATION.add_event(trigger, type, entity)
-            
         else:
             print("No hay ninguna entidad seleccionada.")
 
@@ -210,7 +218,7 @@ class HierachyTab():
         self.context_menu.add_command(label="New Entity", command=self.new_entity_event)
 
         # Vincular evento de clic derecho al menú contextual
-        self.listbox.bind("<Button-3>", self.show_context_menu)
+        self.entity_listbox.bind("<Button-3>", self.show_context_menu)
 
         
         # self.listbox.bind("<<ListboxSelect>>", self.open_on_editor)
@@ -276,6 +284,13 @@ class HierachyTab():
         Muestra el menú contextual en las coordenadas del mouse.
         """
         self.context_menu.post(event.x_root, event.y_root)
+
+    def insert_new_entity_to_listbox(self, event):
+        # print(event)
+        model = GetAllEntitiesModel()
+        self.entities = model.get_all(LEVELS[0])
+        print(self.entities)
+        APPLICATION.insert_element_on_listbox(self.entity_listbox,tk,event["body"]["entity"])
 
 class ProjectTab():
 

@@ -108,7 +108,30 @@ class EditTab:
         entities = levels_json_file['layers']['objects']['entities']
         new_entity = APPLICATION.new_entity_id(entities, self.name_data_txt)
 
-        print(new_entity)
+        if new_entity is not None: 
+            
+            print(new_entity)
+
+            self.clear_inspector()
+            
+            trigger = "new entity form"
+            type = "item added"
+            data = new_entity
+
+            APPLICATION.add_event(trigger, type, data)
+        else:
+            print("Error")    
+
+    def clear_inspector(self):
+        """
+        Borra los widgets anteriores del inspector.
+        """
+        for widget in self.childrens:
+
+            widget.destroy()
+
+        self.childrens = []
+        # print(new_entity)
 
         # print(levels_file)
 
