@@ -114,3 +114,58 @@ class UpdateEntity:
                 json.dump(new_entity_data, f, indent=4)
         except Exception as e:
             print(f"Error al guardar los datos del nivel: {e}")
+
+class DeleteEntityModel: 
+
+    def __init__(self):
+        pass
+
+    def delete_by_name(self, level_file_path, entity_name_to_delete):
+            try:
+                with open(level_file_path, 'r') as f:
+                    data = json.load(f)
+
+                if 'layers' in data and 'objects' in data['layers'] and 'entities' in data['layers']['objects'] and isinstance(data['layers']['objects']['entities'], list):
+                    initial_entity_count = len(data['layers']['objects']['entities'])
+                    data['layers']['objects']['entities'] = [
+                        entity for entity in data['layers']['objects']['entities']
+                        if entity.get('entity_name') != entity_name_to_delete
+                    ]
+                    final_entity_count = len(data['layers']['objects']['entities'])
+
+                    if initial_entity_count > final_entity_count:
+                        with open(level_file_path, 'w') as f:
+                            json.dump(data, f, indent=2)
+                        # print(f"Entidad con nombre '{entity_name_to_delete}' eliminada de {level_file_path}")
+                        response_code = {
+                            "code":200,
+                            "msg":f"Entidad con nombre '{entity_name_to_delete}' eliminada de {level_file_path}"
+                        } 
+                        return response_code
+                    else:
+                        # print(f"No se encontró ninguna entidad con el nombre '{entity_name_to_delete}' en {level_file_path}")
+                        
+                        response_code = {
+                            "code":500,
+                            "msg":f"No se encontró ninguna entidad con el nombre '{entity_name_to_delete}' en {level_file_path}"
+                        } 
+
+                        return response_code
+
+                else:
+                    # print()
+
+                        response_code = {
+                            "code":400,
+                            "msg":f"La estructura del archivo JSON en {level_file_path} no es la esperada para eliminar entidades."
+                        } 
+
+                        return response_code
+
+            except FileNotFoundError:
+
+                print(f"El archivo {level_file_path} no fue encontrado.")
+
+            except json.JSONDecodeError:
+                
+                print(f"Error al decodificar el JSON en {level_file_path}.")

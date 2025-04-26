@@ -27,36 +27,8 @@ class InspectorNotebook:
 
         # self.check_events()
         APPLICATION.event_listener(self.root, "entities-listbox", "listbox element click", self.display_entity_components)
-
-
-    # def check_events(self):
-    #     """
-    #     Revisa periódicamente la cola de eventos y los procesa.
-    #     """
-    #     if APPLICATION.events_queue:
-    #         # Procesar los eventos en la cola
-    #         for event in APPLICATION.events_queue[:]:  # Usamos una copia con slice
-    #             if event["head"]["trigger"] == "entities-listbox" and event["head"]["type"] == "listbox element click":
-    #                 self.display_entity_components(event)
-
-    #                 APPLICATION.events_queue.remove(event)  # Eliminar el evento después de procesarlo
-
-    #     # Programar la próxima revisión después de 100 ms
-    #     self.root.after(100, self.check_events)
-
-    # def test_inspector_form(self, entity_data):
-
-    #     if len(self.childrens) > 0:
-            
-    #         for children in self.childrens:
-
-    #             children.destroy()
-
-    #     label = tk.Label(self.inspector_tab , text=entity_data["entity_name"], font=("Arial", 14))
-    #     label.place(x=10, y=5)  
-
-    #     self.childrens.append(label)
-
+        
+        APPLICATION.event_listener(self.root, "entities-contextual-menu", "new entity button click", self.create_new_entity_form)
 
     def new_entity_popup(self):
         """
@@ -79,28 +51,6 @@ class InspectorNotebook:
         create_button = tk.Button(new_entity_popup, text="Create", command=self.create_new_script_file)
         create_button.place(x=10, y=100) 
 
-        
-    # def show_entity_details(self, event):
-    #     """
-    #     Muestra la información de la entidad seleccionada en el inspector.
-    #     """
-    #     selected_index = self.listbox_entities.curselection()
-
-    #     # print(selected_index)
-
-    #     if selected_index:
-    #         selected_item = self.listbox_entities.get(selected_index[0])
-    #         # Buscar la entidad seleccionada en self.entities
-    #         for entity in self.entities:
-    #             if entity['entity_name'] == selected_item:
-    #                 self.entity_on_use = entity
-    #                 self.display_entity_components(entity)
-    #                 print(self.entity_on_use)
-    #     else:
-    #         print("No se seleccionó ninguna entidad.")
-
-        # # Limpiar el inspector si no hay selección válida
-        # self.clear_inspector()
 
     def display_entity_components(self, entity):
         """
@@ -143,10 +93,7 @@ class {self.entry.get()}:
         pass
 """)
                 
-                # subprocess.Popen(["code", file_path], shell=True)
 
-                # self.scripts_files.append(file_name)
-                # self.listbox.insert(tk.END, f"{file_name}")
                 APPLICATION.insert_element_on_listbox(self.listbox, tk, file_name)
 
                 self.entry.delete(0, tk.END)
@@ -190,18 +137,6 @@ class {self.entry.get()}:
 
         self.childrens.append(self.entity_info_frame)
 
-
-
-        
-        # # Botón para agregar un componente
-        # add_component_btn = tk.Button(self.inspector_tab, text="Add Component", command=self.show_context_menu)
-        # add_component_btn.place(x=(x_location + 100), y=(y_location + 47))  # Posicionamos dinámicamente después de todos los elementos
-        # self.childrens.append(add_component_btn)
-
-        # Actualizamos la posición vertical
-        # y_location += 85  # Espaciamos después del nombre de la entidad
-        
-        # component_button_width = 38
         
         for component in entity["components"]:
 
@@ -333,15 +268,28 @@ class {self.entry.get()}:
                     module= script['module']
                     self.scripts_listbox.insert(tk.END, f"{module}")
 
-
                 
                 # Asociar el evento de selección al Listbox
-                self.scripts_listbox.bind("<<ListboxSelect>>", self.open_on_editor)
+                self.scripts_listbox.bind("<Double-1>", self.open_on_editor)
+
+                
+                self.scripts_listbox.bind("<<ListboxSelect>>", self.listbox_item_contextual_menu)
 
                 self.contextual_menu = self.scripts_contextual_menu()
 
                 
                 self.childrens.append(self.behaviour_component_frame)
+
+    def listbox_item_contextual_menu(self, event):
+
+        selected_index = self.scripts_listbox.curselection()
+
+        if selected_index:
+
+            name = self.scripts_listbox.get(selected_index)
+
+            print(name)
+
 
 
     def scripts_contextual_menu(self):
@@ -398,4 +346,77 @@ class {self.entry.get()}:
             except FileNotFoundError:
                 print(f"No se pudo abrir el archivo: {file_path}")
 
+    def create_new_entity_form(self, event):
+        """
+        Crea el formulario dinámico en el inspector para la entidad dada con un botón de cierre.
+        """
 
+        self.entity_form_notebook = ttk.Notebook(self.inspector_notebook)
+        self.entity_form_notebook.place(x=0, y=800, width=self.notebook_width, height=500)
+
+        self.form_frame = tk.Frame(self.entity_form_notebook, width=254, height=400)
+        self.form_frame.place(x=0, y=5)
+
+        # Frame para el título y el botón de cierre
+        title_bar_frame = tk.Frame(self.form_frame)
+        title_bar_frame.place(x=5, y=5)
+
+        form_title_label = tk.Label(title_bar_frame, text="New Entity", font=("Arial", 11))
+        form_title_label.pack(side=tk.LEFT)
+
+        close_button = tk.Button(title_bar_frame, text="X", width=2, command=self.close_entity_form)
+        close_button.pack(side=tk.LEFT, padx=5)
+
+        name_title_label = tk.Label(self.form_frame, text="Name", font=("Arial", 9))
+        name_title_label.place(x=5, y=35)
+
+        # Textbox para mostrar el nombre de la entidad
+        self.name_data_txt = tk.Text(self.form_frame, height=1, width=34, font=("Arial", 9))
+        self.name_data_txt.place(x=45, y=35)
+
+        add_entity_btn = tk.Button(self.form_frame, text="Add Entity", command=self.add_entity)
+        add_entity_btn.place(x=45, y=65)  # Ubicar el botón en la esquina izquierda superior
+
+        add_class_btn = tk.Button(self.form_frame, text="Add Class", command=self.add_class)
+        add_class_btn.place(x=130, y=65)  # Ubicar el botón en la esquina izquierda superior
+
+        self.entity_form_notebook.add(self.form_frame, text="Form")
+        self.entity_form_notebook.select(self.form_frame) # Selecciona la nueva pestaña
+
+        self.childrens.append(self.entity_form_notebook)
+
+    def close_entity_form(self):
+        """
+        Cierra la pestaña del formulario de la nueva entidad.
+        """
+        if self.entity_form_notebook:
+            self.entity_form_notebook.destroy()
+            self.entity_form_notebook = None # Limpia la referencia
+            # También podrías querer removerlo de self.childrens si es necesario
+            if self.entity_form_notebook in self.childrens:
+                self.childrens.remove(self.entity_form_notebook)
+    def add_entity(self):
+        # Cargar los elementos del archivo JSON
+        levels_json_file = APPLICATION.read_json_file(STATE.content['project_path'] + "\\assets\\levels\\initial_level.json")
+
+        entities = levels_json_file['layers']['objects']['entities']
+        new_entity = APPLICATION.new_entity_id(entities, self.name_data_txt)
+
+        if new_entity is not None: 
+            
+            print(new_entity)
+
+            self.clear_inspector()
+            
+            trigger = "new entity form"
+            type = "item added"
+            data = new_entity
+
+            APPLICATION.add_event(trigger, type, data)
+        else:
+            print("Error")    
+
+
+    def add_class(self):
+
+        pass 

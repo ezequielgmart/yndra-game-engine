@@ -100,7 +100,10 @@ class Application():
 
         listbox.insert(tkinter.END, f"{item}")
 
-        
+    def delete_element_on_listbox(self, listbox, item):
+
+        listbox.delete(item)
+
     def read_json_file(self, json_file):
         with open(json_file, "r") as f:
             data = json.load(f)

@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import ttk
 from PIL import Image, ImageTk
 import os
-import json  # Importa el módulo json
 
 from app.settings import STATE, APPLICATION, LEVELS
 from app.model.main_model import GetAllEntitiesModel, UpdateEntity, GetAllLevelData
@@ -12,12 +11,11 @@ class MainCanvas:
     def __init__(self, root, project_file_data):
 
         self.root = root
-
         self.project_file_data = project_file_data
 
         # Inicializa self.level_data con los datos del proyecto
         self.level_data = GetAllLevelData().get_all(LEVELS[0])
-        print("Initial level data:", self.level_data) # Para depuración
+        # print("Initial level data:", self.level_data) # Para depuración
 
         self.level_designer_tab = ttk.Notebook(self.root)
         self.level_designer_tab.place(x=250, y=30, width=1367, height=850)
@@ -45,7 +43,20 @@ class MainCanvas:
         self.entities_on_scene = []
         self.entity_updater = UpdateEntity() # Instancia UpdateEntity
 
+        self.hierarchy_contextual_menu() # <--- Llama a la función para crear el menú contextual
+
+        # Vincular evento de clic derecho al menú contextual del designer_frame
+        self.designer_frame.bind("<Button-3>", self.show_context_menu)
+
+        # Vincular evento de clic derecho al menú contextual de la image_label (la imagen de fondo)
+        self.image_label.bind("<Button-3>", self.show_context_menu)
+
+        
+        # Vincular evento de clic derecho al menú contextual de la image_label (la imagen de fondo)
+        self.canvas_frame.bind("<Button-3>", self.show_context_menu)
+
         self.render_entities()
+
 
     def render_entities(self):
         model = GetAllEntitiesModel()
@@ -61,22 +72,6 @@ class MainCanvas:
                     self.entities_on_scene.append(entity_representation)
 
 
-    # def update_entity_data(self, entity_name, new_x, new_y):
-
-    #     model = GetAllEntitiesModel()
-    #     self.entities = model.get_all(LEVELS[0])
-
-    #     """Actualiza la posición de la entidad en la estructura de datos del nivel."""
-
-    #     for entity_data in self.entities:
-    #         if entity_data["entity_name"] == entity_name:
-    #             for i, component in enumerate(entity_data["components"]):
-    #                 if component["type"] == "Position":
-    #                     entity_data["components"][i]["data"]["x"] = new_x
-    #                     entity_data["components"][i]["data"]["y"] = new_y
-    #                     print(f"Datos de {entity_name} actualizados en la estructura: x={new_x}, y={new_y}")
-    #                     return
-
     def update_entity_data(self, entity_name, new_x, new_y):
         """Actualiza la posición de la entidad directamente en self.level_data."""
         if isinstance(self.level_data, dict) and "layers" in self.level_data:
@@ -88,13 +83,37 @@ class MainCanvas:
                                 if component["type"] == "Position":
                                     entity_data["components"][i]["data"]["x"] = new_x
                                     entity_data["components"][i]["data"]["y"] = new_y
-
                                     return
                 else:
                     print(f"Advertencia: La capa '{layer_name}' no tiene la clave 'entities' o no es un diccionario.")
         else:
             print("Error: self.level_data no tiene la clave 'layers' o no es un diccionario.")
 
+    def hierarchy_contextual_menu(self):
+        ### menu contextual
+
+        self.context_menu = tk.Menu(self.root, tearoff=0)
+        self.context_menu.add_command(label="New Entity", command=self.new_entity_event)
+
+
+    def new_entity_event(self):
+
+        # registrar evento.
+        trigger = "entities-contextual-menu"
+        type = "new entity button click"
+
+        entity=[]
+
+        APPLICATION.add_event(trigger, type, entity)
+
+        print(APPLICATION.events_queue)
+
+
+    def show_context_menu(self, event):
+        """
+        Muestra el menú contextual en las coordenadas del mouse.
+        """
+        self.context_menu.post(event.x_root, event.y_root)
 
 class EntityRender:
     def __init__(self, frame_container, img_path, x, y, entity, update_callback, entity_updater, level_data): # Recibe entity_updater
@@ -167,3 +186,4 @@ class EntityRender:
                 type = "listbox element click"
                 APPLICATION.add_event(trigger, type, item)
                 break
+ 

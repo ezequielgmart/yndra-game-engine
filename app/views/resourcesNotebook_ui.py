@@ -1,26 +1,26 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 
 from PIL import Image, ImageTk
-import os, subprocess, json 
+import os, subprocess, json
 
-from app.model.main_model import GetAllEntitiesModel
-from app.settings import STATE, APPLICATION, LEVELS 
+from app.model.main_model import GetAllEntitiesModel, DeleteEntityModel
+from app.settings import STATE, APPLICATION, LEVELS
 
 class ResourcesNotebook:
 
     def __init__(self, root, levels_file, entities_classes, scripts_dir):
-        
-        self.root = root 
+
+        self.root = root
         self.levels_file = levels_file
         self.entities_classes = entities_classes
 
         self.levels_file_json = LEVELS[0]
-        
-        self.resources_notebook = ttk.Notebook(self.root)
-        self.resources_notebook.place(x=1, y=2, width=245, height=1890)  
 
-        
+        self.resources_notebook = ttk.Notebook(self.root)
+        self.resources_notebook.place(x=1, y=2, width=245, height=1890)
+
+
         self.hierachy_tab = HierachyTab(root, self.levels_file, self.resources_notebook, self.entities_classes)
         # self.hierachy_tab = ProjectTab(root, self.entities_classes, self.resources_notebook)
 
@@ -32,7 +32,7 @@ class ResourcesNotebook:
 
         # self.listbox_entities = tk.Listbox(self.root, width=40, height=20)
         # self.listbox_entities.place(x=1, y=32)
-    
+
     def new_script_popup(self):
 
         pass
@@ -45,15 +45,15 @@ class ExplorerTreeView():
 
         # Crear el Treeview
         self.tree = ttk.Treeview(root)
-        self.tree.place(x=10, y=340, width=220, height=420)  
+        self.tree.place(x=10, y=340, width=220, height=420)
 
         # Configurar encabezados
         self.tree.heading("#0", text="Explorer", anchor="w")
-        
+
         # Llenar el Treeview
         self.populate_tree(self.directory, "")
 
-        
+
         # Asociar el evento de selección al Listbox
         self.tree.bind("<Double-1>", self.on_doubleclick_event)
 
@@ -63,7 +63,7 @@ class ExplorerTreeView():
         """
         # Obtener el identificador del elemento seleccionado
         selected_item = self.tree.selection()
-        
+
         if selected_item:
 
             # Obtener el texto del elemento seleccionado
@@ -73,7 +73,7 @@ class ExplorerTreeView():
             evaluate = self.evaluate_selection(item_text)
 
             if not evaluate:
-                print(f"Carpeta: {item_text}")  
+                print(f"Carpeta: {item_text}")
 
         else:
             print("No hay ningún elemento seleccionado.")
@@ -83,8 +83,8 @@ class ExplorerTreeView():
 
         evaluate_item_type = item.split('.')
 
-        # Evaluar si tiene mas de un elemento. 
-        if len(evaluate_item_type) > 1:       
+        # Evaluar si tiene mas de un elemento.
+        if len(evaluate_item_type) > 1:
             if evaluate_item_type[1] == "py":
                 self.open_script_on_editor(item)
 
@@ -102,11 +102,11 @@ class ExplorerTreeView():
         # file_name = self.scripts_listbox.get(script_file)
         dir = STATE.content['project_path'] + "\\assets\\scripts"
         file_path = os.path.join(dir, script_file)  # Ajustar con la ruta del directorio base
-        
+
         try:
             # Abrir el archivo con Visual Studio Code
             subprocess.Popen(["code", file_path], shell=True)
- 
+
         except FileNotFoundError:
             print(f"No se pudo abrir el archivo: {file_path}")
 
@@ -140,8 +140,8 @@ class ExplorerTreeView():
 class HierachyTab():
 
     def __init__(self, root, levels_file, notebook, entities_classes):
-        
-        self.root = root 
+
+        self.root = root
         self.levels_file = levels_file
         self.notebook = notebook
         self.entities_classes = entities_classes
@@ -150,27 +150,31 @@ class HierachyTab():
 
         # Cargar las entidades en el Listbox
         self.entities = levels_file['layers']['objects']['entities']  # Acceder a las entidades
-        
+
         self.level_label = tk.Label(self.level_tab, text="Hierarchy", font=("Arial", 10))
         self.level_label.place(x=10, y=9)  # Empaquetar y añadir margen superior/inferior
 
         self.entity_listbox = tk.Listbox(self.level_tab, width=35, height=16)
         self.entity_listbox.place(x=10, y=32)
 
-        self.contextual_menu = self.hierarchy_contextual_menu()
+        self.hierarchy_menu_contextual = self.hierarchy_contextual_menu()
+        self.item_menu_contextual = self.entity_list_item_contextual_menu()
 
         for entity in self.entities:
             entity_name = entity['entity_name']
             self.entity_listbox.insert(tk.END, f"{entity_name}")
-        
+
         self.notebook.add(self.level_tab, text="Level")
 
         self.entity_class_listbox()
 
+        # Asociar el evento de clic derecho al Listbox para mostrar el menú contextual adecuado
+        self.entity_listbox.bind("<Button-3>", self.show_appropriate_context_menu)
+
         # Asociar el evento de selección al Listbox
         self.entity_listbox.bind("<<ListboxSelect>>", self.get_entity_details)
 
-        
+
         APPLICATION.event_listener(self.root, "new entity form", "item added", self.insert_new_entity_to_listbox)
 
     def testing_events(self):
@@ -193,53 +197,43 @@ class HierachyTab():
 
         model = GetAllEntitiesModel()
         self.entities = model.get_all(LEVELS[0])
-        
+
         if selected_index:  # Validar que no esté vacío
             # Buscar la entidad correspondiente
-            
-
             entity = self.entities[selected_index[0]]
-            
+
             print(f"Entidad seleccionada: {entity['entity_name']}")
             print(f"Detalles: {entity}")
 
             # Registrar evento
             trigger = "entities-listbox"
             type = "listbox element click"
-            
+
             APPLICATION.add_event(trigger, type, entity)
-        else:
-            print("No hay ninguna entidad seleccionada.")
+        
 
     def hierarchy_contextual_menu(self):
-            ### menu contextual
+        """Crea el menú contextual para cuando no hay selección."""
+        menu = tk.Menu(self.root, tearoff=0)
+        menu.add_command(label="New Entity", command=self.new_entity_event)
+        return menu
 
-        self.context_menu = tk.Menu(self.root, tearoff=0)
-        self.context_menu.add_command(label="New Entity", command=self.new_entity_event)
-
-        # Vincular evento de clic derecho al menú contextual
-        self.entity_listbox.bind("<Button-3>", self.show_context_menu)
-
-        
-        # self.listbox.bind("<<ListboxSelect>>", self.open_on_editor)
-    
     def new_entity_event(self):
 
-        # registrar evento. 
+        # registrar evento.
         trigger = "entities-contextual-menu"
         type = "new entity button click"
-        
+
         entity=[]
 
         APPLICATION.add_event(trigger, type, entity)
 
-        print(APPLICATION.events_queue)
 
     def entity_class_listbox(self):
 
         # # Crear los Frames que representarán el contenido de cada pestaña
         self.entity_classes_level_tab = ttk.Frame(self.notebook)
-        
+
         self.entity_classes_level_label = tk.Label(self.level_tab, text="Classes", font=("Arial", 10))
         self.entity_classes_level_label.place(x=10, y=750)  # Empaquetar y añadir margen superior/inferior
 
@@ -249,16 +243,16 @@ class HierachyTab():
         self.entity_classes_listbox = tk.Listbox(self.level_tab, width=35, height=11)
         self.entity_classes_listbox.place(x=10, y=770)
 
-        
+
         for entity in self.entities_classes:
             entity_name = entity['class_name']
             APPLICATION.insert_element_on_listbox(self.entity_classes_listbox,tk,entity_name)
             # self.listbox.insert(tk.END, f"{entity_name}")
-        
+
         # self.notebook.add(self.level_tab, text="Project")
-        
+
         self.notebook.add(self.entity_classes_level_tab, text="Level")
-    
+
     def open_on_editor(self, event):
         """
         Abre el archivo seleccionado en Visual Studio Code.
@@ -270,15 +264,15 @@ class HierachyTab():
             # Obtener el archivo de la lista usando el índice
             file_name = self.listbox.get(selected_index)
             file_path = os.path.join(self.scripts_dir, file_name)  # Ajustar con la ruta del directorio base
-            
+
             try:
                 # Abrir el archivo con Visual Studio Code
                 subprocess.Popen(["code", file_path], shell=True)
-                print(f"Abriendo archivo en VS Code: {file_path}")
             except FileNotFoundError:
-                print(f"No se pudo abrir el archivo: {file_path}")
-
                 
+                messagebox.showwarning("Error!", f"resourcesNotebook_ui.py => open_on_editor => {file_path}")   
+
+
     def show_context_menu(self, event):
         """
         Muestra el menú contextual en las coordenadas del mouse.
@@ -292,17 +286,88 @@ class HierachyTab():
         print(self.entities)
         APPLICATION.insert_element_on_listbox(self.entity_listbox,tk,event["body"]["entity"])
 
+
+    def entity_list_item_contextual_menu(self):
+        """Crea el menú contextual para cuando un elemento está seleccionado."""
+        menu = tk.Menu(self.root, tearoff=0)
+        menu.add_command(label="New entity", command=self.new_entity_event)
+        menu.add_separator()
+        menu.add_command(label="Delete Entity", command=self.delete_entity_event)
+        return menu
+
+    def show_appropriate_context_menu(self, event):
+        """Muestra el menú contextual adecuado según si hay un elemento seleccionado."""
+        selected_index = self.entity_listbox.curselection()
+        if selected_index:
+            self.show_entity_item_contextual_menu(event)
+        else:
+            self.show_hierarchy_contextual_menu(event)
+
+    def show_hierarchy_contextual_menu(self, event):
+        """Muestra el menú contextual de jerarquía en la posición del cursor."""
+        try:
+            self.hierarchy_menu_contextual.post(event.x_root, event.y_root)
+        finally:
+            self.hierarchy_menu_contextual.grab_release()
+
+    def show_entity_item_contextual_menu(self, event):
+        """Muestra el menú contextual del elemento de entidad en la posición del cursor."""
+        try:
+            # Obtener el índice del elemento seleccionado con el clic derecho
+            index = self.entity_listbox.nearest(event.y)
+            if index is not None:
+                self.entity_listbox.selection_clear(0, tk.END)  # Deseleccionar cualquier selección previa
+                self.entity_listbox.selection_set(index)        # Seleccionar el elemento clickeado
+                self.entity_listbox.activate(index)             # Establecer el foco en el elemento clickeado
+                self.item_menu_contextual.post(event.x_root, event.y_root)
+        finally:
+            self.item_menu_contextual.grab_release() # Asegurar que el grab se libere
+
+
+    def delete_entity_event(self):
+        """Función que se ejecuta cuando se selecciona la Opción 2."""
+
+        response = messagebox.askyesno("Confirm", "Are you sure?")
+        
+        index = self.entity_listbox.curselection()
+        selected_element = self.entity_listbox.get(index)
+        # print(f"Opción 2 seleccionada para: {selected_element}")
+        
+        if response:
+
+            try: 
+
+                handler = DeleteEntityModel()
+                model_response = handler.delete_by_name(LEVELS[0], selected_element)
+
+                if model_response["code"] == 200:
+
+                    self.delete_entity_from_listbox(index)
+
+                elif  model_response["code"] == 500:
+                    
+                    messagebox.showwarning("Error!", model_response["msg"])    
+
+            except Exception as e:
+                messagebox.showwarning("Error!", f"resourcesNotebook_ui.py => delete_entity_event => {e}")   
+        
+
+    def delete_entity_from_listbox(self, index_item):
+
+        APPLICATION.delete_element_on_listbox(self.entity_listbox, index_item)
+
+
 class ProjectTab():
 
     def __init__(self, root, entities_classes, notebook):
-        
-        self.root = root 
+
+        self.root = root
         self.entities_classes = entities_classes
         self.notebook = notebook
 
         # # Crear los Frames que representarán el contenido de cada pestaña
         self.level_tab = ttk.Frame(self.notebook)
-        
+
         self.level_label = tk.Label(self.level_tab, text="Classes", font=("Arial", 10))
         self.level_label.place(x=10, y=9)  # Empaquetar y añadir margen superior/inferior
 
@@ -312,11 +377,11 @@ class ProjectTab():
         self.listbox = tk.Listbox(self.level_tab, width=40, height=16)
         self.listbox.place(x=1, y=32)
 
-        
+
         for entity in self.entities_classes:
             entity_name = entity['class_name']
             self.listbox.insert(tk.END, f"{entity_name}")
-        
+
         self.notebook.add(self.level_tab, text="Project")
 
     def new_script_popup(self):

@@ -61,7 +61,7 @@ class EditTab:
         # Cargar las entidades en el Listbox
         # self.entities = levels_file['layers']['objects']['entities']  # Acceder a las entidades
 
-        APPLICATION.event_listener(self.root, "entities-contextual-menu", "new entity button click", self.create_new_entity_form)
+        # APPLICATION.event_listener(self.root, "entities-contextual-menu", "new entity button click", self.create_new_entity_form)
 
     def testing(self, event):
 
