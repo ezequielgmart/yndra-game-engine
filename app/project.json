@@ -1,9 +1,0 @@
-{
-    "project_name": "asteroids_ECS",
-    "project_path": "C:/Users/jerem/Desktop/asteroids/projects/asteroids_ECS",
-    "project_file": "C:/Users/jerem/Desktop/asteroids/projects/asteroids_ECS/project.json",
-    "run_file": "C:/Users/jerem/Desktop/asteroids/projects/asteroids_ECS/game.py",
-    "levels": "C:/Users/jerem/Desktop/asteroids/projects/asteroids_ECS/levels/",
-    "scripts": "C:/Users/jerem/Desktop/asteroids/projects/asteroids_ECS/scripts/",
-    "entitys_clases": "C:/Users/jerem/Desktop/asteroids/projects/asteroids_ECS/assets/entitys_classes.json"
-}

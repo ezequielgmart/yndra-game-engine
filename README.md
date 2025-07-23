@@ -1,39 +1,36 @@
-# ikarus-engine
-Entity-Component-System Game Engine with a graphic interface for 2D projects. Powered by python and pygame.  
+# PyECS Engine Core
 
+---
 
-### DONE ################
+## Overview
 
-##### TO DO ################
+`PyECS Engine Core` is a lightweight and flexible foundational component for game development, built upon the Entity-Component-System (ECS) architectural pattern. It provides the essential structure for managing game entities, their attributes (components), and the logic that operates on them (systems), making it ideal for creating modular and scalable game projects.
 
-1. Scripts
-    1. Crear un nuevo script file
-    2. Borrar scripts 
-    3. Asignarle scripts a un entity
-    4. Quitarle scripts a un entity
-2. Assets
-    1. Crear tree view para poder navegar el directorio principal del juego.
-    2. 
-        1. view: visor de imagenes 
-        2. controller: cuando se le de click a un archivo con formato de imagen.   
-3. Classes
-    1. Crear un view donde se vean todas las classes de entity que se puedan crear para reutilizarlas o crear entidades nuevas en tiempo de ejecucion
-4. levels
-    1. crear nuevos niveles 
-    2. editarlos  
-    3. cambiar de niveles (UI)
-5. Render
-    1. Poder asignarle nuevo sprite a un entity
-6. Entities
-    1. Formulario para crear un nuevo entity
-        1. Nuevo
-        2. Copiar una clase 
-7. Components
-    1. Agregar nuevo componente a un entity
-    2. Remover componente de un entity
-    3. View ppara esas acciones        
+This core component simplifies game logic by decoupling data from behavior, promoting reusability and maintainability. It includes core functionalities for loading level data from JSON files, managing entities with their associated components, and executing game loop and rendering systems.
 
-##### ADICIONES POSTERIORES
+---
 
- 
+## Features
 
+* **Entity-Component-System (ECS) Architecture**: A robust foundation for building games, emphasizing composition over inheritance.
+* **JSON-based Level Loading**: Easily define your game worlds, entities, and their components using declarative JSON files.
+* **Dynamic Component Management**: Add and retrieve components from entities at runtime, allowing for flexible object definitions.
+* **Pluggable Systems**: Implement custom game logic and rendering systems that operate on specific component types.
+* **Dynamic Script Execution**: Load and execute Python scripts (behaviors) associated with entities, enabling custom logic for game objects.
+* **Pygame Integration**: Includes a 2D rendering system compatible with Pygame surfaces for visual output.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+To run this engine core, you need:
+
+* Python 3.x
+* Pygame library
+
+You can install Pygame using pip:
+
+```bash
+pip install pygame
