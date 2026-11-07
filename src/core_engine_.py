@@ -10,8 +10,17 @@ algunos metodos que se puede utilizar a lo largo del motor
 
 """
 
-def read_json_file(json_file):
 
+def read_json_file(json_file):
+    """
+    Read a JSON file and return its content as a dictionary.
+
+    Args:
+        json_file (str): Path to the JSON file to read.
+
+    Returns:
+        dict: The parsed JSON content.
+    """
     with open(json_file, "r") as f:
         data = json.load(f)
 
@@ -88,9 +97,7 @@ class GameLoopSystem:
         self.entities.clear()
         self.component_arrays.clear()
 
-        with open(level, "r") as file:
-            datos = json.load(file)
-            self.level_data = datos
+        self.level_data = read_json_file(level)
 
         self.init_level_entities()
 
@@ -108,6 +115,11 @@ class GameLoopSystem:
         """
         Procesa los datos de una entidad, crea instancias y registra sus componentes.
 
+        El tipo de componente que viene en el JSON se busca en COMPONENT_REGISTRY.
+        La clave usada en component_arrays se normaliza siempre a minúsculas para
+        que coincida de forma intencional con las claves que usan los sistemas
+        (por ejemplo, "position", "render", "behaviour").
+
         Args:
             entity_data (dict): Datos de la entidad como su ID y componentes.
         """
@@ -116,11 +128,11 @@ class GameLoopSystem:
         self.entities[entity_id] = entity  # Almacenar la entidad por ID
 
         for component_data in entity_data['components']:
-            component_type = component_data['type'].lower()  # Convertir a minúscula para evitar problemas
+            component_type = component_data['type'].lower()  # Clave normalizada y consistente
             component_values = component_data['data']
 
-            # Crear el componente dinámicamente
-            component_class = globals().get(component_type.capitalize())  # Capitalize to match class names
+            # Resolver la clase del componente a través del registro explícito
+            component_class = COMPONENT_REGISTRY.get(component_type)
             if component_class:
                 component = component_class(**component_values)
                 entity.add_component(component)
@@ -130,41 +142,52 @@ class GameLoopSystem:
                     self.component_arrays[component_type] = {}
                 self.component_arrays[component_type][entity_id] = component
             else:
-                print(f"Warning: Component class '{component_type.capitalize()}' not found.")
+                print(f"Warning: Component type '{component_type}' is not registered in COMPONENT_REGISTRY.")
 
     def onUpdate(self):
+        """
+        Ejecuta el método update() de los scripts de comportamiento de cada entidad.
+
+        Los eventos de pygame se leen una sola vez por frame y se pasan a todos
+        los scripts, evitando consumir la cola de eventos múltiples veces.
+        """
         behaviours = self.component_arrays.get("behaviour")
+        if not behaviours:
+            return
 
-        if behaviours:
-            for entity_id, behaviour in behaviours.items():
-                entity = self.entities.get(entity_id)
-                if entity:
-                    for script_data in behaviour.data["scripts"]:
-                        script_path = script_data["path"]
-                        script_module_name = script_data["module"]
+        # Leer los eventos una sola vez por frame
+        events = pygame.event.get()
 
-                        try:
-                            # Asegúrate de que el módulo esté en el PYTHONPATH
-                            sys.path.append(os.path.dirname(script_path))
+        for entity_id, behaviour in behaviours.items():
+            entity = self.entities.get(entity_id)
+            if not entity:
+                continue
 
-                            # Importar el módulo dinámicamente
-                            module = __import__(script_module_name)
+            scripts = behaviour.data.get("scripts", [])
+            for script_data in scripts:
+                script_path = script_data["path"]
+                script_module_name = script_data["module"]
 
-                            # Obtener la clase del script desde el módulo
-                            script_class = getattr(module, script_module_name)
-                            script_instance = script_class(entity)
+                try:
+                    # Asegurar que el directorio del script esté en el PYTHONPATH una sola vez
+                    script_dir = os.path.dirname(script_path)
+                    if script_dir and script_dir not in sys.path:
+                        sys.path.append(script_dir)
 
-    # Confirmar que se ejecuta el método update()
-                            print(f"Executing update for entity ID {entity_id}")
-                            script_instance.update(pygame.event.get())
+                    # Importar el módulo dinámicamente (reutiliza el cache de módulos)
+                    module = __import__(script_module_name)
 
-                            # Llamar al método update
-                            script_instance.update(pygame.event.get())
+                    # Obtener la clase del script desde el módulo
+                    script_class = getattr(module, script_module_name)
+                    script_instance = script_class(entity)
 
-                        except ImportError:
-                            print(f"on update function -> Warning: Script module '{script_module_name}' not found.")
-                        except AttributeError:
-                            print(f"on update function -> Warning: Script class '{script_module_name}' not found in module '{script_module_name}'.")
+                    # Ejecutar el update una única vez por frame
+                    script_instance.update(events)
+
+                except ImportError:
+                    print(f"on update function -> Warning: Script module '{script_module_name}' not found.")
+                except AttributeError:
+                    print(f"on update function -> Warning: Script class '{script_module_name}' not found in module '{script_module_name}'.")
 
 
 class Render2DSystem:
@@ -185,16 +208,25 @@ class Render2DSystem:
         self.screen = screen
 
     def render(self, entities, component_arrays):
-            render_components = component_arrays.get("render")
-            position_components = component_arrays.get("position")
+        """
+        Dibuja en pantalla todas las entidades que tengan componentes
+        "render" y "position".
 
-            if render_components and position_components:
-                for entity_id, render_component in render_components.items():
-                    position_component = position_components.get(entity_id)
+        Args:
+            entities (dict): Entidades activas (no usado directamente, se
+                mantiene por compatibilidad con la firma del sistema).
+            component_arrays (dict): Arreglos de componentes agrupados por tipo.
+        """
+        render_components = component_arrays.get("render")
+        position_components = component_arrays.get("position")
 
-                    if position_component:
-                        for sprite in render_component.sprites:
-                            self.screen.blit(sprite, (position_component.x, position_component.y))
+        if render_components and position_components:
+            for entity_id, render_component in render_components.items():
+                position_component = position_components.get(entity_id)
+
+                if position_component:
+                    for sprite in render_component.sprites:
+                        self.screen.blit(sprite, (position_component.x, position_component.y))
 
 
 # Components
@@ -205,12 +237,16 @@ class Position:
     Atributos:
         x (int): Coordenada X.
         y (int): Coordenada Y.
+        rotation (float): Rotación de la entidad en grados.
+        scale (float): Factor de escala de la entidad.
     """
     def __init__(self, x, y, rotation, scale):
         """
         Args:
             x (int): Coordenada X inicial.
             y (int): Coordenada Y inicial.
+            rotation (float): Rotación inicial en grados.
+            scale (float): Factor de escala inicial.
         """
         self.x = x
         self.y = y
@@ -224,11 +260,15 @@ class Render:
 
     Atributos:
         sprites (list): Lista de superficies gráficas asociadas a la entidad.
+        width (int): Ancho del sprite.
+        height (int): Alto del sprite.
     """
     def __init__(self, sprites, width, height):
         """
         Args:
             sprites (str): Ruta del archivo de imagen para renderizar.
+            width (int): Ancho del sprite.
+            height (int): Alto del sprite.
         """
         self.sprites = [pygame.image.load(sprites).convert_alpha()]
         self.width = width
@@ -248,3 +288,14 @@ class Behaviour:
             kwargs: Datos dinámicos sobre los scripts y configuraciones del comportamiento.
         """
         self.data = kwargs
+
+
+# Registro explícito de componentes.
+# Mapea el "type" que viene en el JSON (normalizado a minúsculas) a su clase.
+# Se define aquí, después de las clases, para asegurar que existan en el momento
+# de construir el diccionario.
+COMPONENT_REGISTRY = {
+    "position": Position,
+    "render": Render,
+    "behaviour": Behaviour,
+}
