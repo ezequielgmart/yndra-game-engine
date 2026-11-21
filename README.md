@@ -1,4 +1,4 @@
-# Pyndra
+# Yndra
 
 > A Python-first 2D game engine built on an ECS core, with a modern, RPG Maker-inspired data
 > editor and standalone `.exe` distribution.
