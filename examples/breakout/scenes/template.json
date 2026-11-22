@@ -1,0 +1,56 @@
+{
+  "name": "level1",
+  "layers": {
+    "background": {
+      "entities": [
+        {
+          "entity_id": "bg-1",
+          "components": [
+            { "type": "render", "data": { "texture": "assets/green-board.png", "w": 800, "h": 600 } },
+            { "type": "position", "data": { "x": 0, "y": 0 } },
+            { "type": "behaviour", "data": { "scripts": [ { "path": "scripts/level1Handle.js", "module": "Level1Handle" }  ] }}
+          ]
+        },
+        {
+          "entity_id": "score-text",
+          "components": [
+            { "type": "text", "data": { "text": "Score: 0", "font": "24px sans-serif", "color": "#ffffff", "align": "left" } },
+            { "type": "position", "data": { "x": 20, "y": 20 } }
+          ]
+        }
+      ]
+    },
+    "main":  {
+      "entities": [
+        {
+          "entity_id": "user-1",
+          "components": [
+          
+            { "type": "render", "data": { "texture": "assets/snake_head_right.png", "w": 19, "h": 19 } },
+            { "type": "position", "data": { "x": 300, "y": 300 } },
+            { "type": "behaviour", "data": { "scripts": [ { "path": "scripts/playerHandle.js", "module": "PlayerHandle" }  ] } },
+            { "type": "collider2d", "data": {} }
+          ]
+        },
+        {
+          "entity_id": "fruit-1",
+          "components": [
+            { "type": "render", "data": { "texture": "assets/apple.png", "w": 35, "h": 35 } },
+            { "type": "position", "data": { "x": 150, "y": 150 } },
+            { "type": "behaviour", "data": { "scripts": [  { "path": "scripts/fruitHandle.js", "module": "FruitHandle" } ] } },
+            { "type": "collider2d", "data": {"w": 32, "h": 32} }
+          ]
+        },
+        {
+          "entity_id": "tail-model",
+          "components": [
+            { "type": "render",   "data": { "texture": "assets/snake_body_horizontal.png", "w": 19, "h": 19 } },
+            { "type": "position", "data": { "x": -100, "y": -100 } },
+            { "type": "collider2d", "data": { "w": 15, "h": 15 } }
+          ]
+        }
+      ]
+    }
+  }
+}
+

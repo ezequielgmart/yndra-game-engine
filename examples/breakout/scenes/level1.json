@@ -1,0 +1,45 @@
+{
+  "name": "level1",
+  "layers": {
+    "background": {
+      "entities": [ 
+        
+      ]
+    },
+    "main":  {
+      "entities": [
+        {
+          "entity_id": "level-handler-1",
+          "components": [
+           { 
+              "type": "behaviour", 
+              "data": { 
+                "scripts": [ 
+                  { 
+                    "path": "scripts/main_gameloop_handle.py", "module": "MainGameLoopHandle" 
+                  }
+                
+                ]}
+              }]
+        },
+        {
+          "entity_id": "user-1",
+          "components": [
+          
+            { "type": "render", "data": { "sprite_path": "assets/paddle_breakout_100x35.png", "width": 300, "height": 300 } },
+            { "type": "transform", "data": { "x": 350, "y": 550, "rotation": 0, "scale": 0 } } 
+          ]
+        },
+        {
+          "entity_id": "ball-1",
+          "components": [
+          
+            { "type": "render", "data": { "sprite_path": "assets/ball_blue_16x16.png", "width": 16, "height": 16 } },
+            { "type": "transform", "data": { "x": 400, "y": 548, "rotation": 0, "scale": 0 } } 
+          ]
+        }
+      ]
+    }
+  }
+}
+

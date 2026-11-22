@@ -182,8 +182,8 @@ shared-schema/         # Typed, versioned JSON level/prefab format
 
 ## Documents
 
-- [PROJECT_VISION.md](./PROJECT_VISION.md) — goal, architecture decision, problems, roadmap.
-- [TECHNICAL_DECISIONS.md](./TECHNICAL_DECISIONS.md) — backend, editor model, events,
+- [PROJECT_VISION.md](./docs/PROJECT_VISION.md) — goal, architecture decision, problems, roadmap.
+- [TECHNICAL_DECISIONS.md](./docs/TECHNICAL_DECISIONS.md) — backend, editor model, events,
   licensing, MVP plan, and risks.
 
 ---
